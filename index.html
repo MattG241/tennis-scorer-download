@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tennis Scorer — Score matches from your wrist</title>
+<meta name="description" content="Tennis Scorer — score tennis matches from your Wear OS or Apple Watch with live phone display, voice callouts, and match history. Available on App Store and Google Play.">
+<meta property="og:title" content="Tennis Scorer">
+<meta property="og:description" content="Score tennis matches from your wrist. Available on App Store and Google Play for $0.99.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    background: #060d08;
+    color: #e0e8e2;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Ambient background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -40%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(76, 217, 100, 0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(200, 230, 74, 0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* App icon */
+  .icon-wrap {
+    width: 88px;
+    height: 88px;
+    margin: 0 auto 32px;
+    border-radius: 22px;
+    background: linear-gradient(145deg, #1a3a22, #0f2516);
+    border: 1px solid rgba(76, 217, 100, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03);
+    animation: iconIn 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .icon-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent);
+    border-radius: 22px 22px 0 0;
+  }
+
+  @keyframes iconIn {
+    from { opacity: 0; transform: scale(0.8) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .scoreboard {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-weight: 700;
+    font-size: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .score-box {
+    padding: 6px 10px;
+    border-radius: 6px;
+    line-height: 1;
+  }
+
+  .score-green { background: #2d8a3e; color: #fff; }
+  .score-dark { background: #1a1a2e; color: #fff; }
+
+  .score-sep {
+    color: rgba(255,255,255,0.2);
+    font-size: 14px;
+    margin: 0 1px;
+  }
+
+  /* Text */
+  .title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+    animation: fadeUp 0.5s ease-out 0.1s both;
+  }
+
+  .subtitle {
+    font-size: 15px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.6;
+    margin-bottom: 28px;
+    animation: fadeUp 0.5s ease-out 0.15s both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Features */
+  .features {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 32px;
+    animation: fadeUp 0.5s ease-out 0.2s both;
+  }
+
+  .feature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .feature-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .feature-icon svg {
+    width: 18px;
+    height: 18px;
+    color: #4cd964;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .feature-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.3px;
+  }
+
+  /* Price */
+  .price-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(76, 217, 100, 0.12), rgba(200, 230, 74, 0.08));
+    border: 1px solid rgba(76, 217, 100, 0.15);
+    color: #4cd964;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 32px;
+    animation: fadeUp 0.5s ease-out 0.25s both;
+  }
+
+  /* Buttons */
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: fadeUp 0.5s ease-out 0.3s both;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px 24px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+
+  .btn-apple {
+    background: #fff;
+    color: #0a0a0a;
+  }
+
+  .btn-apple:hover {
+    background: #f2f2f2;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(255,255,255,0.08);
+  }
+
+  .btn-apple:active { transform: translateY(0); }
+
+  .btn-google {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.85);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(8px);
+  }
+
+  .btn-google:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.14);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+  }
+
+  .btn-google:active { transform: translateY(0); }
+
+  .btn svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .btn-label-sm {
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.6;
+    display: block;
+    line-height: 1;
+    margin-bottom: 1px;
+  }
+
+  .btn-text {
+    text-align: left;
+    line-height: 1.1;
+  }
+
+  /* Divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 10px 0 2px;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .divider-text {
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    font-weight: 400;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 40px;
+    animation: fadeUp 0.5s ease-out 0.4s both;
+  }
+
+  .footer-text {
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+    font-weight: 300;
+  }
+
+  .footer-text a {
+    color: rgba(255,255,255,0.3);
+    text-decoration: none;
+  }
+
+  /* Court line decoration */
+  .court-lines {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    pointer-events: none;
+    opacity: 0.03;
+    overflow: hidden;
+  }
+
+  .court-lines::before {
+    content: '';
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 160px;
+    border: 2px solid #fff;
+    border-bottom: none;
+  }
+
+  .court-lines::after {
+    content: '';
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 160px;
+    border-left: 2px solid #fff;
+  }
+</style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="icon-wrap">
+      <div class="scoreboard">
+        <span class="score-box score-green">30</span>
+        <span class="score-box score-dark">15</span>
+      </div>
+    </div>
+
+    <h1 class="title">Tennis Scorer</h1>
+    <p class="subtitle">Score matches from your wrist with live phone display, voice callouts, and match history.</p>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <span class="feature-label">Live Score</span>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </div>
+        <span class="feature-label">Voice</span>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <span class="feature-label">Chromecast</span>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <span class="feature-label">History</span>
+      </div>
+    </div>
+
+    <div class="price-badge">$0.99</div>
+
+    <div class="buttons">
+      <a href="https://apps.apple.com/au/app/tennis-scorer-live/id6761465793" class="btn btn-apple">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 21.99 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 21.99C7.79 22.03 6.8 20.68 5.96 19.47C4.25 16.97 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.89C10.1 6.87 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"/></svg>
+        <div class="btn-text">
+          <span class="btn-label-sm">Download on the</span>
+          App Store
+        </div>
+      </a>
+
+      <div class="divider">
+        <span class="divider-line"></span>
+        <span class="divider-text">also available on</span>
+        <span class="divider-line"></span>
+      </div>
+
+      <a href="https://play.google.com/store/apps/details?id=com.matt.tennisscorer" class="btn btn-google">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .61-.92zM14.5 12.707l2.55 2.55-8.418 4.78L14.5 12.706zm4.89-2.29l2.059 1.17c.386.22.551.588.551.913s-.165.693-.55.913l-2.06 1.17-2.81-2.813 2.81-2.353zM8.632 3.963l8.418 4.78-2.55 2.55L8.632 3.963z"/></svg>
+        <div class="btn-text">
+          <span class="btn-label-sm">Get it on</span>
+          Google Play
+        </div>
+      </a>
+    </div>
+
+    <div class="footer">
+      <p class="footer-text">Built solo by <a href="#">MattyG5015</a> · Wear OS & Apple Watch</p>
+    </div>
+  </div>
+
+  <div class="court-lines"></div>
+
+</body>
+</html>
